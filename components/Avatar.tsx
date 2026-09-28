@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useAnimationControls } from "framer-motion";
 import { avatarUrl } from "@/lib/knowledge";
 
@@ -37,6 +37,15 @@ export default function Avatar({
   const listening = state === "listening";
   const thinking = state === "thinking";
   const wrapRef = useRef<HTMLDivElement>(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setReduceMotion(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   // 3D tilt toward the cursor (springs make it feel physical).
   const rx = useMotionValue(0);
@@ -56,7 +65,7 @@ export default function Avatar({
   };
 
   const onMove = (e: React.MouseEvent) => {
-    if (!interactive || !wrapRef.current) return;
+    if (!interactive || reduceMotion || !wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
@@ -104,20 +113,24 @@ export default function Avatar({
             opacity: 0.55,
           }}
           animate={
-            thinking
-              ? { rotate: 360, scale: [1, 1.08, 1], opacity: glowOpacity }
-              : { scale: [1, 1.07, 1], opacity: glowOpacity }
+            reduceMotion
+              ? { opacity: 0.5 }
+              : thinking
+                ? { rotate: 360, scale: [1, 1.08, 1], opacity: glowOpacity }
+                : { scale: [1, 1.07, 1], opacity: glowOpacity }
           }
           transition={
-            thinking
-              ? { rotate: { duration: 2.6, repeat: Infinity, ease: "linear" }, scale: { duration: 1.4, repeat: Infinity }, opacity: { duration: 1.6, repeat: Infinity } }
-              : { duration: speaking ? 1.6 : 3.2, repeat: Infinity, ease: "easeInOut" }
+            reduceMotion
+              ? { duration: 0 }
+              : thinking
+                ? { rotate: { duration: 2.6, repeat: Infinity, ease: "linear" }, scale: { duration: 1.4, repeat: Infinity }, opacity: { duration: 1.6, repeat: Infinity } }
+                : { duration: speaking ? 1.6 : 3.2, repeat: Infinity, ease: "easeInOut" }
           }
         />
       </div>
 
       {/* Listening ripples — emanate while the mic is open */}
-      {listening && (
+      {listening && !reduceMotion && (
         <>
           {[0, 1, 2].map((i) => (
             <motion.span
@@ -133,7 +146,7 @@ export default function Avatar({
       )}
 
       {/* Thinking orbit — three dots revolving around the photo */}
-      {thinking && (
+      {thinking && !reduceMotion && (
         <motion.div
           aria-hidden
           className="absolute inset-0"
@@ -172,13 +185,13 @@ export default function Avatar({
           transformStyle: "preserve-3d",
           cursor: interactive ? "pointer" : undefined,
         }}
-        animate={interactive ? { scale: 1 } : { scale: [1, 1.015, 1], y: [0, -3, 0] }}
-        transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+        animate={reduceMotion || interactive ? { scale: 1 } : { scale: [1, 1.015, 1], y: [0, -3, 0] }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* Lip-sync bars while speaking — driven by the real speech envelope
           (--twin-level), with a gentle CSS sway so they never look frozen. */}
-      {speaking && (
+      {speaking && !reduceMotion && (
         <div aria-hidden className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-end gap-[3px]">
           {[9, 15, 21, 15, 9].map((max, i) => (
             <span

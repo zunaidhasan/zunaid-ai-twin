@@ -16,6 +16,10 @@ import { identity, projects, stats, stack, experience, education } from "@/lib/k
 
 export const runtime = "nodejs";
 
+const recent = new Map<string, number[]>();
+const WINDOW_MS = 60_000;
+const MAX_PER_WINDOW = 20;
+
 // Compact, token-efficient knowledge summary for the system prompt.
 function knowledgeSummary(): string {
   const proj = projects
@@ -45,6 +49,16 @@ export async function POST(req: Request) {
     .slice(-12); // token guard
 
   if (!msgs.length) return NextResponse.json({ ok: false, reason: "no messages" }, { status: 400 });
+
+  const ip = (req.headers.get("x-forwarded-for") || "local").split(",")[0].trim();
+  const now = Date.now();
+  const stamps = (recent.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+  if (stamps.length >= MAX_PER_WINDOW) {
+    return NextResponse.json({ ok: false, reason: "slow down" }, { status: 429 });
+  }
+  stamps.push(now);
+  recent.set(ip, stamps);
+  if (recent.size > 500) recent.clear();
 
   const mode = getLlmMode();
   const apiKey = process.env.LLM_API_KEY;

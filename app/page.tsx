@@ -10,7 +10,7 @@ import MessageInput from "@/components/MessageInput";
 import SettingsPanel, { type ThemeId } from "@/components/SettingsPanel";
 import { generateReply, greetingReply, tryCommand, type Tone } from "@/lib/engine";
 import { isLlmEnabled } from "@/lib/llm";
-import { loadHistory, saveHistory, clearHistory, recordMessage, type Msg } from "@/lib/memory";
+import { loadHistory, saveHistory, clearHistory, recordMessage, getName, type Msg } from "@/lib/memory";
 import { speak, stopSpeaking, loadVoices } from "@/lib/voice";
 import { buildShareUrl, trimToShareable, type ShareMsg } from "@/lib/share";
 import { recordEvent } from "@/lib/analytics";
@@ -128,6 +128,10 @@ export default function Home() {
     document.documentElement.setAttribute("data-theme", settings.theme);
   }, [settings, hydrated]);
 
+  useEffect(() => {
+    document.documentElement.lang = banglaActive ? "bn" : "en";
+  }, [banglaActive]);
+
   /* ------------------------- autoscroll -------------------------- */
   useEffect(() => {
     logRef.current?.scrollTo({ top: 1e6, behavior: "smooth" });
@@ -216,6 +220,7 @@ export default function Home() {
                 messages: [...msgs, userMsg].slice(-12).map((m) => ({ role: m.role === "twin" ? "assistant" : "user", content: m.text })),
                 tone: settings.tone,
                 lang: banglaActive ? "bn" : "auto",
+                userName: getName() || undefined,
               }),
             });
             const data = (await res.json()) as { ok: boolean; text?: string };
@@ -279,16 +284,30 @@ export default function Home() {
             {displayState === "thinking" ? "thinking…" : displayState === "speaking" ? "speaking…" : displayState === "listening" ? "listening — go ahead…" : `${identity.tagline} · ${identity.location} 🇧🇩`}
           </p>
         </div>
-        <a href={identity.portfolio} target="_blank" rel="noopener noreferrer" className="btn-ghost hidden !py-1.5 text-[12.5px] sm:inline-flex">
-          🌐 Portfolio
+        <a
+          href={identity.portfolio}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Portfolio"
+          className="btn-ghost flex h-11 w-11 items-center justify-center !p-0 text-[16px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12.5px]"
+        >
+          <span aria-hidden>🌐</span>
+          <span className="hidden sm:inline">Portfolio</span>
         </a>
-        <a href={identity.github} target="_blank" rel="noopener noreferrer" className="btn-ghost hidden !py-1.5 text-[12.5px] sm:inline-flex">
-          🐙 GitHub
+        <a
+          href={identity.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+          className="btn-ghost flex h-11 w-11 items-center justify-center !p-0 text-[16px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12.5px]"
+        >
+          <span aria-hidden>🐙</span>
+          <span className="hidden sm:inline">GitHub</span>
         </a>
         <button
           onClick={() => setSettingsOpen(true)}
           aria-label="Open settings"
-          className="flex h-9 w-9 items-center justify-center rounded-xl transition"
+          className="flex h-11 w-11 items-center justify-center rounded-xl transition"
           style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }}
         >
           ⚙️

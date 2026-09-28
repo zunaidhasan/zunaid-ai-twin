@@ -62,6 +62,7 @@ export function clearHistory() {
   try {
     localStorage.removeItem(HISTORY_KEY);
     localStorage.removeItem(FACTS_KEY);
+    localStorage.removeItem(NAME_KEY);
   } catch {
     /* noop */
   }

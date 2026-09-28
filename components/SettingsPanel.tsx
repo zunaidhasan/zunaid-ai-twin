@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { listVoices, loadVoices, speak, stopSpeaking } from "@/lib/voice";
 
@@ -59,6 +59,17 @@ export default function SettingsPanel({
   llmEnabled: boolean;
 }) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   // Load the browser voice list when the drawer opens (async in Chrome).
   useEffect(() => {
@@ -119,7 +130,7 @@ export default function SettingsPanel({
           >
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold" style={{ color: "var(--text)" }}>Settings</h2>
-              <button onClick={onClose} aria-label="Close settings" className="rounded-lg px-2 py-1 text-lg" style={{ color: "var(--muted)" }}>✕</button>
+              <button ref={closeRef} onClick={onClose} aria-label="Close settings" className="flex h-11 w-11 items-center justify-center rounded-lg text-lg" style={{ color: "var(--muted)" }}>✕</button>
             </div>
 
             {/* Theme */}

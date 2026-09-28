@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { avatarUrl } from "@/lib/knowledge";
 import type { TwinPayload } from "@/lib/engine";
 import ProjectCard from "./ProjectCard";
@@ -53,6 +53,7 @@ export default function ChatBubble({
   onShare: () => string;
 }) {
   const isUser = msg.role === "user";
+  const reduceMotion = useReducedMotion();
 
   const renderPayload = () => {
     if (!msg.payload || streaming) return null;
@@ -94,9 +95,9 @@ export default function ChatBubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+      transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 30 }}
       className={`flex w-full gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}
     >
       {!isUser && (
@@ -123,8 +124,8 @@ export default function ChatBubble({
                   key={i}
                   className="h-2 w-2 rounded-full"
                   style={{ background: "var(--accent)" }}
-                  animate={{ opacity: [0.2, 1, 0.2] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.18 }}
+                  animate={reduceMotion ? { opacity: 0.7 } : { opacity: [0.2, 1, 0.2] }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, delay: i * 0.18 }}
                 />
               ))}
             </span>
