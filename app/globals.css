@@ -1,0 +1,241 @@
+@import "tailwindcss";
+
+/* ============================================================
+   THEME TOKENS — 4 themes, dark-first
+   Studio Dark (default) · Bangladesh Green · Neon Terminal · Minimal Light
+   ============================================================ */
+
+:root,
+[data-theme="studio"] {
+  --bg: #07070e;
+  --bg-glow-1: rgba(124, 108, 255, 0.13);
+  --bg-glow-2: rgba(244, 114, 182, 0.08);
+  --surface: #101018;
+  --surface-2: #191925;
+  --line: #232334;
+  --text: #f2f2f8;
+  --text-2: #c9c9da;
+  --muted: #8a8aa0;
+  --accent: #7c6cff;
+  --accent-2: #f472b6;
+  --accent-3: #38bdf8;
+  --bubble-user: linear-gradient(135deg, #5b4ee6, #7c3aed);
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="green"] {
+  --bg: #04120b;
+  --bg-glow-1: rgba(0, 168, 98, 0.14);
+  --bg-glow-2: rgba(246, 54, 54, 0.07);
+  --surface: #0a1a11;
+  --surface-2: #10271a;
+  --line: #1c3a28;
+  --text: #eefaf2;
+  --text-2: #c2e5d0;
+  --muted: #7aa88d;
+  --accent: #00a862;
+  --accent-2: #f43636;
+  --accent-3: #7ce0a8;
+  --bubble-user: linear-gradient(135deg, #00834d, #00a862);
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="terminal"] {
+  --bg: #000000;
+  --bg-glow-1: rgba(34, 197, 94, 0.12);
+  --bg-glow-2: rgba(34, 197, 94, 0.05);
+  --surface: #050805;
+  --surface-2: #0b140c;
+  --line: #143018;
+  --text: #d2ffd9;
+  --text-2: #9fe8ae;
+  --muted: #55a86a;
+  --accent: #22c55e;
+  --accent-2: #a3e635;
+  --accent-3: #10b981;
+  --bubble-user: linear-gradient(135deg, #15803d, #16a34a);
+  --shadow-soft: 0 8px 30px rgba(0, 40, 10, 0.5);
+}
+
+[data-theme="light"] {
+  --bg: #f6f6f9;
+  --bg-glow-1: rgba(124, 108, 255, 0.10);
+  --bg-glow-2: rgba(244, 114, 182, 0.07);
+  --surface: #ffffff;
+  --surface-2: #f0f0f5;
+  --line: #e3e3ec;
+  --text: #16161f;
+  --text-2: #3d3d4e;
+  --muted: #7c7c90;
+  --accent: #6a5cff;
+  --accent-2: #ec4899;
+  --accent-3: #0ea5e9;
+  --bubble-user: linear-gradient(135deg, #6a5cff, #8b5cf6);
+  --shadow-soft: 0 8px 30px rgba(20, 20, 40, 0.08);
+}
+
+/* ============================================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+  /* Ambient page glow that follows the theme */
+  background-image:
+    radial-gradient(900px 480px at 18% -10%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(760px 420px at 88% 112%, var(--bg-glow-2), transparent 60%);
+  background-attachment: fixed;
+}
+
+.font-display {
+  font-family: var(--font-fredoka), var(--font-inter), system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+/* Focus visibility (a11y) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Buttons */
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.btn-accent:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-weight: 500;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.btn-ghost:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+/* Streaming caret */
+.stream-caret::after {
+  content: "▍";
+  color: var(--accent);
+  animation: caret-blink 0.9s steps(2) infinite;
+}
+@keyframes caret-blink {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Mic glow while listening — driven by the live input level (--mic-level 0..1
+   is set by components/MicLevel.tsx). Intensity literally follows your voice. */
+.mic-live {
+  box-shadow:
+    0 0 calc(6px + 22px * var(--mic-level, 0)) color-mix(in srgb, var(--accent) 65%, transparent),
+    0 0 calc(2px + 8px * var(--mic-level, 0)) color-mix(in srgb, var(--accent-2) 45%, transparent);
+  transform: scale(calc(1 + 0.06 * var(--mic-level, 0)));
+  transition: box-shadow 80ms linear, transform 80ms linear;
+}
+
+/* Twin's voice-reactive glow — while the twin speaks, --twin-level (0..1)
+   drives this halo around the avatar and the lip-sync bar heights. */
+.voice-glow {
+  opacity: calc(0.35 + 0.65 * var(--twin-level, 0));
+  transform: scale(calc(1 + 0.09 * var(--twin-level, 0)));
+  transition: opacity 90ms linear, transform 90ms linear;
+  will-change: opacity, transform;
+}
+.voice-bar {
+  transform-origin: bottom;
+  animation: voice-sway 0.55s ease-in-out infinite alternate;
+}
+@keyframes voice-sway {
+  from { transform: scaleY(0.72); }
+  to { transform: scaleY(1.18); }
+}
+
+/* Sound-wave border around the input bar while a reply is streaming —
+   four dashed gradient strips race around the rounded border. --wave-level
+   (0..1) brightens the glow with the twin's speech energy. */
+.wave-live {
+  --wave-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  border: 1px solid transparent !important;
+  background-image:
+    repeating-linear-gradient(90deg, var(--wave-color) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(0deg, var(--wave-color) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(90deg, var(--wave-color) 0 14px, transparent 14px 28px),
+    repeating-linear-gradient(0deg, var(--wave-color) 0 14px, transparent 14px 28px);
+  background-size:
+    calc(100% - 30px) 2px, 2px calc(100% - 30px),
+    calc(100% - 30px) 2px, 2px calc(100% - 30px);
+  background-position: 15px 0, 100% 15px, 15px 100%, 0 15px;
+  background-repeat: no-repeat;
+  animation: wave-run 0.9s linear infinite;
+  box-shadow: 0 0 calc(4px + 18px * var(--wave-level, 0))
+    color-mix(in srgb, var(--accent) 30%, transparent);
+}
+@keyframes wave-run {
+  to {
+    background-position:
+      calc(15px - 28px) 0, 100% calc(15px + 28px), calc(15px + 28px) 100%, 0 calc(15px - 28px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mic-live {
+    transform: none;
+  }
+  .wave-live {
+    animation: none;
+    border: 1px solid var(--accent) !important;
+  }
+  .voice-bar {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
