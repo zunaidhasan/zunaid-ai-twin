@@ -31,10 +31,14 @@ export default function LeaveMessageForm() {
       if (!res.ok) throw new Error();
       const data = (await res.json()) as { ok: boolean; stored?: boolean };
       setState("sent");
-      setNote(data.stored ? null : "Delivered to the twin's outbox.");
+      setNote(
+        data.stored
+          ? "Logged on the server for now. Email delivery is not wired yet — for anything urgent, email connect.zunaid@gmail.com."
+          : "Accepted, but not stored. Email connect.zunaid@gmail.com directly."
+      );
     } catch {
       setState("error");
-      setNote("Couldn't send — email connect.zunaid@gmail.com directly and it lands the same place.");
+      setNote("Couldn't send — email connect.zunaid@gmail.com directly.");
     }
   };
 
@@ -42,9 +46,9 @@ export default function LeaveMessageForm() {
     return (
       <div className="mt-2 rounded-xl p-4 text-center" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }}>
         <p className="text-2xl" aria-hidden>📨</p>
-        <p className="mt-1 text-[14px] font-medium" style={{ color: "var(--text)" }}>Message sent!</p>
+        <p className="mt-1 text-[14px] font-medium" style={{ color: "var(--text)" }}>Message logged</p>
         <p className="mt-0.5 text-[12.5px]" style={{ color: "var(--muted)" }}>
-          {note || "It's in Zunaid's inbox — expect a reply within 24h."}
+          {note}
         </p>
       </div>
     );
@@ -56,23 +60,31 @@ export default function LeaveMessageForm() {
   return (
     <form onSubmit={submit} className="mt-2 w-full rounded-xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }}>
       <p className="mb-2 text-[13px] font-medium" style={{ color: "var(--text)" }}>
-        📝 Leave a message for the human
+        Leave a message for the human
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name (optional)" className={inputCls} style={inputStyle} maxLength={60} aria-label="Your name" />
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Your email (optional)" className={inputCls} style={inputStyle} maxLength={80} aria-label="Your email" />
+        <label className="block text-[11px]" style={{ color: "var(--muted)" }}>
+          Name (optional)
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={`${inputCls} mt-1`} style={inputStyle} maxLength={60} />
+        </label>
+        <label className="block text-[11px]" style={{ color: "var(--muted)" }}>
+          Email (optional)
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="you@example.com" className={`${inputCls} mt-1`} style={inputStyle} maxLength={80} />
+        </label>
       </div>
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        placeholder="Hi Zunaid — I saw the AI twin and…"
-        rows={3}
-        maxLength={600}
-        className={`${inputCls} mt-2 resize-none`}
-        style={inputStyle}
-        aria-label="Your message"
-        required
-      />
+      <label className="mt-2 block text-[11px]" style={{ color: "var(--muted)" }}>
+        Message
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Hi Zunaid — I saw the AI twin and…"
+          rows={3}
+          maxLength={600}
+          className={`${inputCls} mt-1 resize-none`}
+          style={inputStyle}
+          required
+        />
+      </label>
       <div className="mt-2 flex items-center justify-between gap-2">
         <span className="text-[11px]" style={{ color: "var(--muted)" }}>{body.length}/600</span>
         <button type="submit" disabled={state === "sending" || !body.trim()} className="btn-accent text-[13px] disabled:opacity-50">

@@ -3,6 +3,7 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: true },
+  allowedDevOrigins: [".monkeycode-ai.live"],
   // Pin workspace root so a stray lockfile in $HOME can't confuse build tracing.
   outputFileTracingRoot: path.join(import.meta.dirname),
   // The AI Twin ships as static assets + 3 tiny serverless routes (chat proxy,

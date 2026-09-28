@@ -116,8 +116,8 @@ export default function ChatBubble({
             boxShadow: isUser ? "none" : "var(--shadow-soft)",
           }}
         >
-          {streaming ? (
-            <span className="flex items-center gap-1 py-1">
+          {streaming && !msg.text ? (
+            <span className="flex items-center gap-1 py-1" aria-label="Thinking">
               {[0, 1, 2].map((i) => (
                 <motion.span
                   key={i}
@@ -126,10 +126,13 @@ export default function ChatBubble({
                   animate={{ opacity: [0.2, 1, 0.2] }}
                   transition={{ duration: 1, repeat: Infinity, delay: i * 0.18 }}
                 />
-          ))}
+              ))}
             </span>
           ) : (
-            <span dangerouslySetInnerHTML={{ __html: mdLite(msg.text) }} />
+            <span
+              className={streaming ? "stream-caret" : undefined}
+              dangerouslySetInnerHTML={{ __html: mdLite(msg.text) }}
+            />
           )}
         </div>
         <div className={`mt-1.5 ${renderPayload() ? "" : "hidden"}`}>{renderPayload()}</div>

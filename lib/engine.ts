@@ -197,7 +197,10 @@ function runCommands(raw: string, ctx: EngineContext): CommandResult {
 
   // "leave a message" / leave-message
   if (/\b(leave (a )?message|message for zunaid|feedback)\b/.test(q)) {
-    return reply("Sure — drop a note below and it goes straight to Zunaid's inbox:", { kind: "leave-message" });
+    return reply(
+      "Sure — drop a note below. It is logged on the server for now; email delivery is not wired yet. For anything urgent, email connect.zunaid@gmail.com.",
+      { kind: "leave-message" }
+    );
   }
 
   // "clear"
@@ -213,6 +216,12 @@ function runCommands(raw: string, ctx: EngineContext): CommandResult {
   }
 
   return undefined;
+}
+
+/** Special commands only — used by the UI so `matrix` / `share` / etc.
+ *  still win when an LLM is connected. */
+export function tryCommand(raw: string, ctx: EngineContext): TwinReply | undefined {
+  return runCommands(raw, ctx);
 }
 
 /* ------------------------------------------------------------------ */
@@ -462,7 +471,7 @@ export function generateReply(raw: string, ctx: EngineContext): TwinReply {
   const recall = recallPhrase(buildRecall(ctx.history));
 
   // 1) Commands always win.
-  const cmd = runCommands(input, ctx);
+  const cmd = tryCommand(input, ctx);
   if (cmd) return cmd;
 
   // 2) Knowledge intents.

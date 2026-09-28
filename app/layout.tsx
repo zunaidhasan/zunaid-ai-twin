@@ -38,7 +38,8 @@ export const viewport: Viewport = {
 };
 
 // Applies the saved theme before first paint (no flash).
-const themeBoot = `(function(){try{var t=localStorage.getItem("ztwin.theme")||"studio";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`;
+// Must read ztwin.settings.v1 — the same key page.tsx persists.
+const themeBoot = `(function(){try{var t="studio";var raw=localStorage.getItem("ztwin.settings.v1");if(raw){var s=JSON.parse(raw);if(s&&typeof s.theme==="string")t=s.theme;}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -46,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
-      <body className="min-h-dvh antialiased">
+      <body className={`${fredoka.variable} ${inter.variable} min-h-dvh antialiased`}>
         <a
           href="#chat-log"
           className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:px-3 focus:py-2"

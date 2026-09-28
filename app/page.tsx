@@ -7,8 +7,8 @@ import Avatar, { type AvatarState } from "@/components/Avatar";
 import ChatBubble, { type BubbleMsg } from "@/components/ChatBubble";
 import SuggestedChips from "@/components/SuggestedChips";
 import MessageInput from "@/components/MessageInput";
-import SettingsPanel, { THEMES, type ThemeId } from "@/components/SettingsPanel";
-import { generateReply, greetingReply, type Tone } from "@/lib/engine";
+import SettingsPanel, { type ThemeId } from "@/components/SettingsPanel";
+import { generateReply, greetingReply, tryCommand, type Tone } from "@/lib/engine";
 import { isLlmEnabled } from "@/lib/llm";
 import { loadHistory, saveHistory, clearHistory, recordMessage, type Msg } from "@/lib/memory";
 import { speak, stopSpeaking, loadVoices } from "@/lib/voice";
@@ -55,6 +55,16 @@ function useStreamer() {
     setVisible((v) => ({ ...v, [id]: full }));
   }, []);
 
+  useEffect(() => {
+    const timersMap = timers.current;
+    return () => {
+      for (const id of Object.keys(timersMap)) {
+        clearInterval(timersMap[id]);
+        delete timersMap[id];
+      }
+    };
+  }, []);
+
   return { visible, stream, stop };
 }
 
@@ -73,6 +83,7 @@ export default function Home() {
 
   const logRef = useRef<HTMLDivElement>(null);
   const bootedRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
   const streamer = useStreamer();
   // MessageInput registers its mic starter here so hands-free mode can reopen
   // the mic after each spoken reply (true voice conversation loop).
@@ -105,15 +116,17 @@ export default function Home() {
     }
     setLlmOn(isLlmEnabled());
     void loadVoices();
+    setHydrated(true);
   }, []);
 
   /* --------------------- persist settings ------------------------ */
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(KEY, JSON.stringify(settings));
     } catch { /* noop */ }
     document.documentElement.setAttribute("data-theme", settings.theme);
-  }, [settings]);
+  }, [settings, hydrated]);
 
   /* ------------------------- autoscroll -------------------------- */
   useEffect(() => {
@@ -138,6 +151,7 @@ export default function Home() {
     setAvatarState("thinking");
 
     streamer.stream(id, reply.text, () => {
+      setBusy(false);
       setAvatarState(settings.voiceOn ? "speaking" : "idle");
       if (settings.voiceOn) {
         speak(reply.text, {
@@ -184,14 +198,15 @@ export default function Home() {
       setMsgs((m) => {
         const next = [...m, userMsg];
         recordMessage({ id: userMsg.id, role: "user", text, ts: Date.now() });
-        saveHistory(next.map((x) => ({ id: x.id, role: x.role, text: x.text, ts: Date.now() })));
+        saveHistory(next.map((x) => ({ id: x.id, role: x.role, text: x.text, ts: Date.now(), payload: x.payload })));
         return next;
       });
 
-      // "share" command needs history AFTER the share bubble is added; handled in onShare.
-
-      if (isLlmEnabled()) {
-        // ⚙️ PLUG-IN POINT: LLM path — rule engine still covers commands.
+      const ctx = { tone: settings.tone, history: msgs as Msg[], langLock: banglaActive ? ("bn" as const) : null };
+      const cmd = tryCommand(text, ctx);
+      if (cmd) {
+        setTimeout(() => pushTwin(cmd, text), 420);
+      } else if (isLlmEnabled()) {
         void (async () => {
           try {
             const res = await fetch("/api/chat", {
@@ -209,19 +224,15 @@ export default function Home() {
               return;
             }
           } catch { /* fall through to engine */ }
-          const r = generateReply(text, { tone: settings.tone, history: msgs as Msg[], langLock: banglaActive ? "bn" : null });
-          pushTwin(r, text);
+          try {
+            pushTwin(generateReply(text, ctx), text);
+          } catch {
+            setBusy(false);
+          }
         })();
       } else {
-        // Small human-like pause before the engine answers.
-        setTimeout(() => {
-          const r = generateReply(text, { tone: settings.tone, history: msgs as Msg[], langLock: banglaActive ? "bn" : null });
-          pushTwin(r, text);
-        }, 420);
+        setTimeout(() => pushTwin(generateReply(text, ctx), text), 420);
       }
-
-      // Release busy once the twin bubble finishes streaming (approx): 
-      setTimeout(() => setBusy(false), 600);
     },
     [busy, msgs, settings.tone, banglaActive, pushTwin]
   );
@@ -360,6 +371,7 @@ export default function Home() {
           banglaActive={banglaActive}
           handsFree={settings.handsFree}
           micHandleRef={micHandleRef}
+          onMicStart={stopSpeaking}
           onListeningChange={setMicListening}
           streaming={avatarState !== "idle"}
         />
