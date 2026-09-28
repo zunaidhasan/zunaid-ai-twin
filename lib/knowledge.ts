@@ -32,8 +32,7 @@ export const identity = {
   github: "https://github.com/zunaidhasan",
   linkedin: "https://www.linkedin.com/in/zunaid-ishan/",
   portfolio: "https://zunaidhasan.github.io/zunaid.dev/",
-  resume: "https://zunaidhasan.github.io/zunaid.dev/", // resume button on portfolio links here
-  bookCall: "https://cal.com/zunaidhasan", // ⚙️ PLUG-IN POINT: replace with Zunaid's real booking link (Cal.com / Calendly)
+  resume: "https://zunaidhasan.github.io/zunaid.dev/",
   philosophy:
     "I build production AI systems — not demos. From Bangla-language NLP to real-time voice agents, I ship products that work at scale.",
   intro:
@@ -79,8 +78,6 @@ export const projects: Project[] = [
       "AI virtual receptionist in Bangla + English, smart IVR with intent detection, bulk voice campaign engine, white-label reseller program, and a real-time analytics dashboard. Built to make voice AI accessible to Bangladeshi businesses.",
     stack: ["Next.js", "FastAPI", "ElevenLabs", "Retell AI", "Supabase", "Claude API", "Pinecone", "Azure TTS"],
     status: "Active",
-    demo: "https://github.com/zunaidhasan", // ⚙️ PLUG-IN POINT: replace with the real DeshVox live URL when public
-    github: "https://github.com/zunaidhasan",
     keywords: ["deshvox", "call center", "callcenter", "voice agent", "voice ai", "ivr", "receptionist", "bulk campaign", "voice"],
     architecture:
       "Phone line → Retell AI agent (real-time ASR + turn-taking) → FastAPI orchestration layer → Claude for reasoning with a Pinecone-backed business knowledge base → ElevenLabs / Azure TTS for Bangla + English synthesis → Supabase for call logs, campaigns and analytics. Bulk campaigns run as queued jobs hitting the same agent runtime with per-caller context.",
@@ -94,7 +91,6 @@ export const projects: Project[] = [
       "Accessible legal guidance for Bangla speakers — an AI legal assistant that answers questions in Bangla, built around Claude with careful NLP pipelines.",
     stack: ["Python", "Claude API", "NLP"],
     status: "Live",
-    github: "https://github.com/zunaidhasan",
     keywords: ["legalmate", "legal", "law", "ain"],
     architecture:
       "Bangla query → intent classification → Claude API with legal-grounded prompts → safety guardrails against real legal advice → response in Bangla.",
@@ -108,7 +104,6 @@ export const projects: Project[] = [
       "AI proposal generation and project matching for freelance workflows — reads a brief, matches skills, and drafts tailored proposals.",
     stack: ["FastAPI", "React", "Claude API"],
     status: "Deployed",
-    github: "https://github.com/zunaidhasan",
     keywords: ["fiverr", "freelance", "proposal", "gig"],
   },
   {
@@ -132,7 +127,6 @@ export const projects: Project[] = [
     stack: ["ML Model", "RAG Engine", "Sentinel-2", "WhatsApp API", "Pinecone", "Express"],
     status: "Live",
     impact: "Democratizing agricultural intelligence for Bangla-speaking farmers.",
-    github: "https://github.com/zunaidhasan",
     keywords: ["maatigyan", "soil", "farmer", "agriculture", "whatsapp", "crop"],
     architecture:
       "WhatsApp Bot → Express API → ML spectral model on Sentinel-2 imagery → RAG engine (Pinecone vector search → GPT synthesis) → Bangla crop recommendation back to the farmer.",
@@ -147,7 +141,6 @@ export const projects: Project[] = [
     stack: ["React.js", "Node.js", "MongoDB", "Vercel"],
     status: "Deployed",
     impact: "Replacing paper-based workflows at national scale.",
-    github: "https://github.com/zunaidhasan",
     keywords: ["fuel", "fuelcard", "efuelcard", "petrol"],
     architecture: "React SPA → Node.js API → MongoDB → JWT Auth → Role-Based Access (citizen / admin / pump operator).",
   },
@@ -160,7 +153,6 @@ export const projects: Project[] = [
       "Service booking web app with Next.js 15, Prisma and Stripe. Browse services, book appointments, pay online — admins manage everything from a dedicated dashboard.",
     stack: ["Next.js 15", "Prisma", "Stripe", "PostgreSQL"],
     status: "Deployed",
-    github: "https://github.com/zunaidhasan",
     keywords: ["booking", "appointment", "stripe", "saas"],
     architecture: "Next.js SSR → Prisma ORM → PostgreSQL → Stripe Webhooks → Admin Dashboard.",
   },
@@ -174,7 +166,6 @@ export const projects: Project[] = [
     stack: ["React.js", "Supabase", "PostgreSQL"],
     status: "Deployed",
     impact: "Enterprise-grade asset accountability for distributed teams.",
-    github: "https://github.com/zunaidhasan",
     keywords: ["geartrackr", "asset", "inventory", "equipment"],
     architecture: "PostgreSQL — assets (id, name, assigned_to, due_date) + audit_logs (id, asset_id, action, timestamp).",
   },
@@ -187,7 +178,6 @@ export const projects: Project[] = [
       "Generates 3 personalized cold-email variations with GPT based on recipient details, role, company, and tone.",
     stack: ["OpenAI GPT", "Pinecone", "React.js"],
     status: "Deployed",
-    github: "https://github.com/zunaidhasan",
     keywords: ["cold pitch", "cold email", "outreach"],
     architecture: "Recipient data → prompt engineering → 3 email variants → tone adjustment.",
   },

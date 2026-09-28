@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { decodeConversation, type ShareMsg } from "@/lib/share";
 import { avatarUrl, identity } from "@/lib/knowledge";
+import { mdLite } from "@/lib/markdown";
 import Starfield from "@/components/Starfield";
 
 /**
@@ -49,7 +50,7 @@ export default function SharedView() {
                   boxShadow: "var(--shadow-soft)",
                 }}
               >
-                {m.text}
+                <span dangerouslySetInnerHTML={{ __html: mdLite(m.text) }} />
               </div>
             </div>
           ))}

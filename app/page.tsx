@@ -15,6 +15,7 @@ import { speak, stopSpeaking, loadVoices } from "@/lib/voice";
 import { buildShareUrl, trimToShareable, type ShareMsg } from "@/lib/share";
 import { recordEvent } from "@/lib/analytics";
 import { identity, stats } from "@/lib/knowledge";
+import { useStreamer } from "@/hooks/useStreamer";
 
 type Settings = {
   theme: ThemeId;
@@ -26,47 +27,6 @@ type Settings = {
 
 const DEFAULTS: Settings = { theme: "studio", tone: "auto", voiceOn: false, voiceName: "", handsFree: false };
 const KEY = "ztwin.settings.v1";
-
-/** Streams text into a message id, revealing chunk-by-chunk. */
-function useStreamer() {
-  const [visible, setVisible] = useState<Record<string, string>>({});
-  const timers = useRef<Record<string, ReturnType<typeof setInterval>>>({});
-
-  const stream = useCallback((id: string, full: string, onDone: () => void) => {
-    let i = 0;
-    const step = Math.max(2, Math.round(full.length / 90)); // ~90 ticks max
-    const t = setInterval(() => {
-      i += step;
-      setVisible((v) => ({ ...v, [id]: full.slice(0, i) }));
-      if (i >= full.length) {
-        clearInterval(t);
-        delete timers.current[id];
-        onDone();
-      }
-    }, 18);
-    timers.current[id] = t;
-  }, []);
-
-  const stop = useCallback((id: string, full: string) => {
-    if (timers.current[id]) {
-      clearInterval(timers.current[id]);
-      delete timers.current[id];
-    }
-    setVisible((v) => ({ ...v, [id]: full }));
-  }, []);
-
-  useEffect(() => {
-    const timersMap = timers.current;
-    return () => {
-      for (const id of Object.keys(timersMap)) {
-        clearInterval(timersMap[id]);
-        delete timersMap[id];
-      }
-    };
-  }, []);
-
-  return { visible, stream, stop };
-}
 
 export default function Home() {
   /* ---------------------------- state ---------------------------- */

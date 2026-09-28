@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { projects } from "@/lib/knowledge";
+import { identity, projects } from "@/lib/knowledge";
 import { recordEvent } from "@/lib/analytics";
 
 /**
@@ -85,12 +85,12 @@ export default function ProjectCard({ projectId }: { projectId: string }) {
               )}
 
               <div className="mt-3 flex flex-wrap gap-2">
-                {p.demo && (
+                {p.demo && p.demo !== identity.github && (
                   <a href={p.demo} target="_blank" rel="noopener noreferrer" className="btn-accent text-[13px]">
                     🚀 Live Demo
                   </a>
                 )}
-                {p.github && (
+                {p.github && p.github !== identity.github && (
                   <a href={p.github} target="_blank" rel="noopener noreferrer" className="btn-ghost text-[13px]">
                     ⭐ GitHub
                   </a>

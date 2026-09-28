@@ -157,7 +157,9 @@ function runCommands(raw: string, ctx: EngineContext): CommandResult {
       : pick(architectureWisdom);
     return reply(
       `${body}\n\n_${designPrinciple}_`,
-      p ? { kind: "actions", actions: [{ label: "View GitHub", url: p.github || identity.github, icon: "🐙" }] } : undefined
+      p && p.github && p.github !== identity.github
+        ? { kind: "actions", actions: [{ label: "View GitHub", url: p.github, icon: "🐙" }] }
+        : undefined
     );
   }
 
@@ -240,9 +242,8 @@ function projectReply(p: Project, tone: string, recall: string): TwinReply {
   const statusLine = p.status ? `\n\n**Status:** ${p.status}` : "";
 
   const actions: Action[] = [];
-  if (p.demo) actions.push({ label: "View Live Demo", url: p.demo, icon: "🚀" });
-  if (p.github) actions.push({ label: "Star on GitHub", url: p.github, icon: "⭐" });
-  actions.push({ label: "Book a Call", url: identity.bookCall, icon: "📞" });
+  if (p.demo && p.demo !== identity.github) actions.push({ label: "View Live Demo", url: p.demo, icon: "🚀" });
+  if (p.github && p.github !== identity.github) actions.push({ label: "Star on GitHub", url: p.github, icon: "⭐" });
 
   const closers: Record<string, string> = {
     formal: "Shall I go deeper on the architecture?",
@@ -413,7 +414,6 @@ function handleIntents(raw: string, tone: string, recall: string, lang: Lang): T
       payload: { kind: "actions", actions: [
         { label: "Connect on LinkedIn", url: identity.linkedin, icon: "💼" },
         { label: "Email", url: `mailto:${identity.email}`, icon: "✉️" },
-        { label: "Book a Call", url: identity.bookCall, icon: "📞" },
       ] },
     };
   }

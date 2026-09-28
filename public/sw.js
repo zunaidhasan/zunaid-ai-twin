@@ -1,8 +1,8 @@
 /* Zunaid AI Twin — minimal service worker for PWA installability.
    Strategy: precache the shell; everything else is network-first.
    Bump CACHE version when you change global styles to refresh the shell. */
-const CACHE = "ztwin-v6"; // v6: local avatar photo (me.png)
-const OFFLINE_URLS = ["/", "/manifest.webmanifest"];
+const CACHE = "ztwin-v7"; // v7: precache avatar + OG
+const OFFLINE_URLS = ["/", "/manifest.webmanifest", "/me.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

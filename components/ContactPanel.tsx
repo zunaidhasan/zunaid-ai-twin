@@ -26,9 +26,6 @@ export default function ContactPanel() {
           <span className="ml-auto font-medium">{r.value}</span>
         </a>
       ))}
-      <a href={identity.bookCall} target="_blank" rel="noopener noreferrer" className="btn-accent mt-1 justify-center text-[13px]">
-        📅 Book a Call
-      </a>
     </div>
   );
 }

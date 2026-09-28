@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description: "Chat with Zunaid Hasan's AI Twin — production AI from Dhaka 🇧🇩",
     url: "https://zunaidhasan.github.io",
     siteName: "Zunaid Hasan AI Twin",
-    images: [{ url: "https://zunaid-ai-twin.vercel.app/me.png", width: 512, height: 512 }],
+    images: [{ url: "/me.png", width: 512, height: 512 }],
     locale: "en_US",
     type: "website",
   },

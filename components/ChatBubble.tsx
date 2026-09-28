@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { avatarUrl } from "@/lib/knowledge";
+import { mdLite } from "@/lib/markdown";
 import type { TwinPayload } from "@/lib/engine";
 import ProjectCard from "./ProjectCard";
 import ActionRow from "./ActionRow";
@@ -17,17 +18,6 @@ import LeaveMessageForm from "./LeaveMessageForm";
  * controls `streamText`); user bubbles pop in. Twin bubbles can carry a rich
  * payload (project card / actions / stats / matrix…) revealed progressively.
  */
-
-function mdLite(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/_(.+?)_/g, "<em>$1</em>")
-    .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md" style="background:var(--surface-2)">$1</code>')
-    .replace(/\n/g, "<br/>");
-}
 
 export type BubbleMsg = {
   id: string;
