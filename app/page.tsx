@@ -7,6 +7,8 @@ import Avatar, { type AvatarState } from "@/components/Avatar";
 import ChatBubble, { type BubbleMsg } from "@/components/ChatBubble";
 import SuggestedChips from "@/components/SuggestedChips";
 import MessageInput from "@/components/MessageInput";
+import SideRail from "@/components/SideRail";
+import AvailabilityCTA from "@/components/AvailabilityCTA";
 import SettingsPanel, { type ThemeId } from "@/components/SettingsPanel";
 import { generateReply, greetingReply, tryCommand, type Tone } from "@/lib/engine";
 import { isLlmEnabled } from "@/lib/llm";
@@ -218,6 +220,20 @@ export default function Home() {
   };
 
   /* ---------------------------- view ----------------------------- */
+  // Empty = greeting only, no user turn yet. First real message triggers the
+  // empty → active transition (hero collapses, stream becomes the surface).
+  const isEmpty = msgs.length <= 1 && !busy;
+  const userTurns = msgs.filter((m) => m.role === "user").length;
+
+  // Projects touched by the conversation → side rail, in discussion order.
+  const railProjects = msgs
+    .flatMap((m) => {
+      const ids: string[] = [];
+      if (m.payload?.kind === "project") ids.push(m.payload.projectId);
+      return ids;
+    })
+    .filter((id, i, arr) => arr.indexOf(id) === i);
+
   // Avatar display state — listening wins (it means the mic is open right now).
   const displayState: AvatarState = micListening ? "listening" : avatarState;
 
@@ -226,30 +242,69 @@ export default function Home() {
     if (!busy && msgs.length <= 1) send("hello 👋"); // first poke breaks the ice
   };
 
+  const statusLine =
+    displayState === "thinking"
+      ? "thinking…"
+      : displayState === "speaking"
+        ? "speaking…"
+        : displayState === "listening"
+          ? "listening — go ahead…"
+          : banglaActive
+            ? "বাংলা মোড · প্রোডাকশন-ফার্স্ট"
+            : identity.tagline;
+
+  const showRail = !isEmpty && userTurns >= 2;
+
   return (
     <main className="flex h-dvh flex-col">
       <Starfield mood={mood} />
 
-      {/* Header */}
+      {/* Compact persistent header — identity yields to conversation */}
       <header
-        className="z-10 flex items-center gap-3 px-4 py-3 backdrop-blur-md sm:px-6"
-        style={{ background: "color-mix(in srgb, var(--bg) 55%, transparent)", borderBottom: "1px solid var(--line)" }}
+        className="z-10 flex h-[56px] shrink-0 items-center gap-3 px-4 backdrop-blur-md sm:px-6"
+        style={{
+          background: "color-mix(in srgb, var(--bg) 60%, transparent)",
+          borderBottom: "1px solid var(--line)",
+        }}
       >
-        <Avatar state={displayState} size={64} showStatus={false} />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[17px] font-semibold leading-tight" style={{ color: "var(--text)" }}>
-            Zunaid Hasan <span style={{ color: "var(--accent)" }}>· AI Twin</span>
-          </h1>
-          <p className="truncate text-[12px]" style={{ color: "var(--muted)" }}>
-            {displayState === "thinking" ? "thinking…" : displayState === "speaking" ? "speaking…" : displayState === "listening" ? "listening — go ahead…" : `${identity.tagline} · ${identity.location} 🇧🇩`}
-          </p>
+        {/* New conversation — appears once the chat is no longer pristine */}
+        <AnimatePresence>
+          {!isEmpty && (
+            <motion.button
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.2 }}
+              onClick={reset}
+              aria-label="Start a new conversation"
+              title="New conversation"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] transition"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--line)", color: "var(--muted)" }}
+            >
+              <span aria-hidden>✎</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Avatar state={displayState} size={38} showStatus={false} />
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-[14px] font-semibold leading-tight" style={{ color: "var(--text)" }}>
+              Zunaid Hasan <span style={{ color: "var(--accent)" }}>· AI Twin</span>
+            </h1>
+            <p className="flex items-center gap-1.5 truncate text-[11px]" style={{ color: "var(--muted)" }}>
+              <span aria-hidden className="status-dot" data-state={displayState} />
+              {statusLine}
+            </p>
+          </div>
         </div>
+
         <a
           href={identity.portfolio}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Portfolio"
-          className="btn-ghost flex h-11 w-11 items-center justify-center !p-0 text-[16px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12.5px]"
+          className="btn-ghost flex h-9 w-9 items-center justify-center !p-0 text-[15px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12px]"
         >
           <span aria-hidden>🌐</span>
           <span className="hidden sm:inline">Portfolio</span>
@@ -259,101 +314,135 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="btn-ghost flex h-11 w-11 items-center justify-center !p-0 text-[16px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12.5px]"
+          className="btn-ghost flex h-9 w-9 items-center justify-center !p-0 text-[15px] sm:h-auto sm:w-auto sm:!px-3 sm:!py-1.5 sm:text-[12px]"
         >
-          <span aria-hidden>🐙</span>
+          <span aria-hidden>⌥</span>
           <span className="hidden sm:inline">GitHub</span>
         </a>
         <button
           onClick={() => setSettingsOpen(true)}
           aria-label="Open settings"
-          className="flex h-11 w-11 items-center justify-center rounded-xl transition"
-          style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] transition"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--line)", color: "var(--muted)" }}
         >
-          ⚙️
+          <span aria-hidden>⚙</span>
         </button>
       </header>
 
-      {/* Hero — big interactive avatar; collapses once the conversation starts */}
-      <AnimatePresence>
-        {msgs.length <= 2 && (
-          <motion.section
-            key="hero"
-            aria-label="Introduction"
-            className="z-10 flex flex-col items-center gap-2.5 px-4 pt-5 text-center"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -18, height: 0, paddingTop: 0, paddingBottom: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <Avatar state={displayState} size={196} showStatus={false} interactive onPoke={pokeAvatar} />
-            <h2 className="font-display text-[24px] font-semibold leading-tight" style={{ color: "var(--text)" }}>
-              {identity.name}
-            </h2>
-            <p className="max-w-md text-[13.5px] leading-relaxed" style={{ color: "var(--text-2)" }}>
-              {identity.tagline} — {identity.location} 🇧🇩
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              {stats.slice(0, 4).map((s) => (
-                <span
-                  key={s.label}
-                  className="rounded-full px-2.5 py-1 text-[11.5px]"
-                  style={{ background: "var(--surface-2)", border: "1px solid var(--line)", color: "var(--text-2)" }}
-                >
-                  <strong style={{ color: "var(--accent)" }}>{s.value}</strong> {s.label}
-                </span>
-              ))}
-            </div>
-            <p className="mt-0.5 animate-pulse text-[11.5px]" style={{ color: "var(--muted)" }} aria-hidden>
-              {poked ? "let's talk 👇" : "👆 poke me — or just start typing"}
-            </p>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-      {/* Chat log */}
-      <div id="chat-log" ref={logRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-5" role="log" aria-live="polite" aria-label="Conversation with Zunaid's AI Twin">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {msgs.map((m, idx) => {
-            const partial = streamer.visible[m.id];
-            const isStreaming = m.text === "" || (typeof partial === "string" && partial.length < m.text.length);
-            const text = typeof partial === "string" ? (isStreaming ? partial : m.text) : m.text;
-            return (
-              <ChatBubble
-                key={m.id}
-                msg={{ ...m, text }}
-                streaming={isStreaming}
-                onChip={(c) => send(c)}
-                onContact={() => send("contact")}
-                onLeaveMessage={() => send("leave a message")}
-                onShare={onShare}
-              />
-            );
-          })}
+      {/* Body: conversation column + optional desktop rail */}
+      <div className="mx-auto flex w-full max-w-[1280px] flex-1 gap-6 px-0 sm:px-4">
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Hero — centered identity anchor; yields on first message */}
           <AnimatePresence>
-            {busy && avatarState === "thinking" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 px-1 text-[12px]" style={{ color: "var(--muted)" }}>
-                <span className="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--accent)" }} />
-                the twin is thinking…
-              </motion.div>
+            {isEmpty && (
+              <motion.section
+                key="hero"
+                aria-label="Introduction"
+                className="z-10 flex flex-col items-center gap-3 px-4 pb-1 pt-7 text-center sm:pt-10"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16, height: 0, paddingTop: 0, paddingBottom: 0, transition: { duration: 0.38, ease: "easeInOut" } }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <Avatar state={displayState} size={188} showStatus={false} interactive onPoke={pokeAvatar} />
+                <h2 className="font-display text-[26px] font-semibold leading-tight" style={{ color: "var(--text)" }}>
+                  {identity.name}
+                </h2>
+                <p className="max-w-md text-[13.5px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+                  {identity.tagline} — {identity.location} 🇧🇩
+                </p>
+                <div className="mt-1 flex flex-wrap items-center justify-center gap-1.5">
+                  {stats.slice(0, 4).map((s) => (
+                    <span key={s.label} className="stat-pill">
+                      <strong>{s.value}</strong> {s.label}
+                    </span>
+                  ))}
+                </div>
+                {poked && (
+                  <p className="mt-0.5 text-[11.5px]" style={{ color: "var(--muted)" }} aria-hidden>
+                    let&apos;s talk 👇
+                  </p>
+                )}
+              </motion.section>
             )}
           </AnimatePresence>
-        </div>
-      </div>
 
-      {/* Chips + input */}
-      <div className="z-10 backdrop-blur-md" style={{ background: "color-mix(in srgb, var(--bg) 55%, transparent)" }}>
-        <SuggestedChips onPick={send} visible={msgs.length <= 1} />
-        <MessageInput
-          onSend={send}
-          disabled={busy}
-          banglaActive={banglaActive}
-          handsFree={settings.handsFree}
-          micHandleRef={micHandleRef}
-          onMicStart={stopSpeaking}
-          onListeningChange={setMicListening}
-          streaming={avatarState !== "idle"}
-        />
+          {/* Message stream — the dominant surface once active */}
+          <div
+            id="chat-log"
+            ref={logRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation with Zunaid's AI Twin"
+            className={`flex-1 overflow-y-auto px-3 sm:px-2 ${isEmpty ? "py-3" : "py-5"}`}
+          >
+            <div className="mx-auto flex max-w-[760px] flex-col gap-4">
+              {msgs.map((m) => {
+                const partial = streamer.visible[m.id];
+                const isStreaming = m.text === "" || (typeof partial === "string" && partial.length < m.text.length);
+                const text = typeof partial === "string" ? (isStreaming ? partial : m.text) : m.text;
+                return (
+                  <ChatBubble
+                    key={m.id}
+                    msg={{ ...m, text }}
+                    streaming={isStreaming}
+                    onChip={(c) => send(c)}
+                    onContact={() => send("contact")}
+                    onLeaveMessage={() => send("leave a message")}
+                    onShare={onShare}
+                  />
+                );
+              })}
+
+              {/* Soft availability CTA — once, after meaningful depth */}
+              <AnimatePresence>
+                {userTurns === 3 && !busy && (
+                  <AvailabilityCTA onContact={() => send("contact")} onLeaveMessage={() => send("leave a message")} />
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {busy && avatarState === "thinking" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-2 px-1 text-[12px]"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    <span className="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--accent)" }} />
+                    the twin is thinking…
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Prompts + input */}
+          <div
+            className="z-10 shrink-0 backdrop-blur-md"
+            style={{
+              background: "color-mix(in srgb, var(--bg) 60%, transparent)",
+              borderTop: isEmpty ? "none" : "1px solid var(--line)",
+            }}
+          >
+            <SuggestedChips onPick={send} visible={isEmpty} />
+            <MessageInput
+              onSend={send}
+              disabled={busy}
+              banglaActive={banglaActive}
+              handsFree={settings.handsFree}
+              micHandleRef={micHandleRef}
+              onMicStart={stopSpeaking}
+              onListeningChange={setMicListening}
+              streaming={avatarState !== "idle"}
+              showTip={isEmpty}
+            />
+          </div>
+        </div>
+
+        {/* Related-content rail — large desktop only */}
+        <SideRail projectIds={railProjects} visible={showRail} />
       </div>
 
       <SettingsPanel

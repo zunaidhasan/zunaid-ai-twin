@@ -482,11 +482,11 @@ export function generateReply(raw: string, ctx: EngineContext): TwinReply {
   return fallback(input, tone, recall, lang);
 }
 
-/** First-load greeting. */
+/** First-load greeting. Payload omitted — the curated prompt row is the single
+ *  onboarding surface; no duplicate chips inside the welcome bubble. */
 export function greetingReply(): TwinReply {
   return {
-    text: `আসসালামু আলাইকুম / Hello! 👋\n\nI'm **Zunaid Hasan's AI Twin** — a digital double running on his real work: ${stats[0].value} projects, ${stats[3].value} AI systems, and a production-first philosophy from ${identity.location} 🇧🇩\n\nAsk me anything — or try \`matrix\`, \`show stats\`, or \`roast my idea\` if you want the full experience.`,
+    text: `আসসালামু আলাইকুম / Hello 👋\n\nI'm **Zunaid Hasan's AI Twin** — running on his real track record: ${stats[0].value} projects, ${stats[3].value} AI systems shipped, built production-first from ${identity.location} 🇧🇩\n\nType below, or press the mic and just talk — it sends itself when you stop.`,
     lang: "en",
-    payload: { kind: "chips", items: ["Tell me about DeshVox", "What's your tech stack?", "Who is Zunaid?", "show stats", "roast my idea"] },
   };
 }

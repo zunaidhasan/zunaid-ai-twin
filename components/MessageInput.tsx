@@ -46,6 +46,7 @@ export default function MessageInput({
   micHandleRef,
   onListeningChange,
   streaming,
+  showTip,
 }: {
   onSend: (text: string) => void;
   disabled?: boolean;
@@ -56,6 +57,8 @@ export default function MessageInput({
   onListeningChange?: (listening: boolean) => void;
   /** True while the twin's reply is streaming → sound-wave border on the bar. */
   streaming?: boolean;
+  /** Voice tip is rendered only in the empty (pre-conversation) state. */
+  showTip?: boolean;
 }) {
   const [value, setValue] = useState("");
   const [listening, setListening] = useState(false);
@@ -135,7 +138,7 @@ export default function MessageInput({
   };
 
   return (
-    <div className="px-3 pb-3 sm:px-5 sm:pb-5">
+    <div className="px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 sm:pb-5">
       {micNote && (
         <p className="mb-1.5 px-1 text-[12px]" style={{ color: "#f87171" }} role="alert">{micNote}</p>
       )}
@@ -194,9 +197,13 @@ export default function MessageInput({
           ➤
         </button>
       </div>
-      <p className="mx-auto mt-1.5 hidden max-w-3xl text-center text-[11px] sm:block" style={{ color: "var(--muted)" }}>
-        {speechRecognitionSupported() ? "Tip: press the mic and just talk — it sends itself when you stop." : "Voice input needs Chrome or Edge."} Try <code>matrix</code> · <code>show stats</code> · <code>roast my idea</code>
-      </p>
+      {showTip && (
+        <p className="mx-auto mt-1.5 hidden max-w-3xl text-center text-[11px] sm:block" style={{ color: "var(--muted)" }}>
+          {speechRecognitionSupported()
+            ? "Press the mic and just talk — it sends itself when you stop."
+            : "Voice input needs Chrome or Edge."} Try <code>matrix</code> · <code>show stats</code> · <code>roast my idea</code>
+        </p>
+      )}
     </div>
   );
 }

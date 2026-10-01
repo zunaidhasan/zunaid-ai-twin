@@ -8,16 +8,16 @@ import { recordEvent } from "@/lib/analytics";
 /**
  * Rich project card — expands beautifully when a project is discussed.
  * Fires 'project_open' analytics so "popular projects" dashboards work later.
+ * `variant="compact"` renders a static, small side-rail card (no analytics,
+ * no expansion) for the desktop related-content rail.
  */
-export default function ProjectCard({ projectId }: { projectId: string }) {
+export default function ProjectCard({ projectId, variant = "full" }: { projectId: string; variant?: "full" | "compact" }) {
   const p = projects.find((x) => x.id === projectId);
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    if (p) recordEvent("project_open", { id: p.id });
-  }, [p]);
-
-  if (!p) return null;
+    if (p && variant === "full") recordEvent("project_open", { id: p.id });
+  }, [p, variant]);
 
   const statusColor: Record<string, string> = {
     Active: "#34d399",
@@ -26,6 +26,32 @@ export default function ProjectCard({ projectId }: { projectId: string }) {
     Internal: "#fbbf24",
     Complete: "#a78bfa",
   };
+
+  if (!p) return null;
+
+  if (variant === "compact") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        className="rounded-xl px-3 py-2.5"
+        style={{ background: "var(--surface)", border: "1px solid var(--line)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span aria-hidden className="text-base">{p.emoji}</span>
+          <span className="min-w-0 flex-1 truncate text-[13px] font-medium" style={{ color: "var(--text)" }}>{p.name}</span>
+          <span
+            className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+            style={{ background: `color-mix(in srgb, ${statusColor[p.status]} 16%, transparent)`, color: statusColor[p.status] }}
+          >
+            {p.status}
+          </span>
+        </div>
+        <p className="mt-1 line-clamp-2 text-[11.5px] leading-snug" style={{ color: "var(--muted)" }}>{p.tagline}</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

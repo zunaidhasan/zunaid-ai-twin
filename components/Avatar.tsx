@@ -77,7 +77,7 @@ export default function Avatar({
     ry.set(0);
   };
 
-  const glowOpacity = speaking ? [0.55, 0.9, 0.55] : listening ? [0.5, 0.8, 0.5] : [0.4, 0.65, 0.4];
+  const glowOpacity = speaking ? [0.4, 0.75, 0.4] : listening ? [0.42, 0.68, 0.42] : [0.3, 0.5, 0.3];
 
   return (
     <motion.div
@@ -101,30 +101,29 @@ export default function Avatar({
           : undefined
       }
     >
-      {/* Voice-reactive glow — scales/brightens with the twin's speech level
-          (--twin-level is set on <html> while speaking; see page.tsx) */}
+      {/* Voice-reactive glow — single-accent halo; scales/brightens with the
+          twin's speech level (--twin-level is set on <html> while speaking) */}
       <div aria-hidden className="voice-glow absolute inset-0 rounded-full">
         <motion.div
           className="absolute inset-0 rounded-full"
           style={{
-            background:
-              "conic-gradient(from 180deg, var(--accent), var(--accent-2), var(--accent-3), var(--accent))",
-            filter: "blur(16px)",
-            opacity: 0.55,
+            background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent) 0%, transparent 70%)",
+            filter: "blur(14px)",
+            opacity: 0.5,
           }}
           animate={
             reduceMotion
-              ? { opacity: 0.5 }
+              ? { opacity: 0.45 }
               : thinking
-                ? { rotate: 360, scale: [1, 1.08, 1], opacity: glowOpacity }
-                : { scale: [1, 1.07, 1], opacity: glowOpacity }
+                ? { rotate: 360, scale: [1, 1.06, 1], opacity: glowOpacity }
+                : { scale: [1, 1.05, 1], opacity: glowOpacity }
           }
           transition={
             reduceMotion
               ? { duration: 0 }
               : thinking
-                ? { rotate: { duration: 2.6, repeat: Infinity, ease: "linear" }, scale: { duration: 1.4, repeat: Infinity }, opacity: { duration: 1.6, repeat: Infinity } }
-                : { duration: speaking ? 1.6 : 3.2, repeat: Infinity, ease: "easeInOut" }
+                ? { rotate: { duration: 3.2, repeat: Infinity, ease: "linear" }, scale: { duration: 1.6, repeat: Infinity }, opacity: { duration: 1.8, repeat: Infinity } }
+                : { duration: speaking ? 1.8 : 3.6, repeat: Infinity, ease: "easeInOut" }
           }
         />
       </div>
@@ -156,10 +155,10 @@ export default function Avatar({
           {[0, 120, 240].map((deg) => (
             <span
               key={deg}
-              className="absolute left-1/2 top-1/2 h-[7px] w-[7px] rounded-full"
+              className="absolute left-1/2 top-1/2 h-[6px] w-[6px] rounded-full"
               style={{
-                background: "var(--accent-3)",
-                boxShadow: "0 0 8px var(--accent-3)",
+                background: "var(--accent)",
+                boxShadow: "0 0 7px color-mix(in srgb, var(--accent) 80%, transparent)",
                 transform: `rotate(${deg}deg) translateX(${size / 2 - 4}px)`,
               }}
             />
@@ -212,19 +211,13 @@ export default function Avatar({
         <span
           aria-label={state}
           role="status"
-          className="absolute right-1 top-1 flex h-4 w-4"
+          className="absolute bottom-0.5 right-0.5 flex h-4 w-4"
         >
           <span
-            className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+            className="relative inline-flex h-3.5 w-3.5 rounded-full border-2"
             style={{
-              background: thinking ? "var(--accent-2)" : listening ? "var(--accent-3)" : "#34d399",
-            }}
-          />
-          <span
-            className="relative inline-flex h-4 w-4 rounded-full border-2"
-            style={{
-              background: thinking ? "var(--accent-2)" : listening ? "var(--accent-3)" : "#34d399",
-              borderColor: "var(--bg)",
+              background: thinking ? "var(--accent)" : listening ? "var(--accent-3)" : "#34d399",
+              borderColor: "var(--surface)",
             }}
           />
         </span>
