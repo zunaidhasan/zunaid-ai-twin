@@ -7,20 +7,22 @@
 
 :root,
 [data-theme="studio"] {
-  --bg: #07070e;
-  --bg-glow-1: rgba(124, 108, 255, 0.13);
-  --bg-glow-2: rgba(244, 114, 182, 0.08);
-  --surface: #101018;
-  --surface-2: #191925;
-  --line: #232334;
-  --text: #f2f2f8;
-  --text-2: #c9c9da;
-  --muted: #8a8aa0;
-  --accent: #7c6cff;
-  --accent-2: #f472b6;
-  --accent-3: #38bdf8;
-  --bubble-user: linear-gradient(135deg, #5b4ee6, #7c3aed);
-  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.35);
+  /* Premium single-surface studio: near-black, one indigo-violet accent. */
+  --bg: #060609;
+  --bg-glow-1: rgba(99, 91, 255, 0.07);
+  --bg-glow-2: rgba(99, 91, 255, 0.03);
+  --surface: #0d0d14;
+  --surface-2: #14141e;
+  --line: #1f1f2c;
+  --text: #f4f4f8;
+  --text-2: #c6c6d4;
+  --muted: #83839a;
+  --accent: #6e5bff;
+  --accent-2: #8f7fff; /* lighter step of the same hue — hover/emphasis only */
+  --accent-3: #a89bff; /* quiet secondary step of the same hue */
+  --bubble-user: linear-gradient(135deg, #4f43e0, #6e5bff);
+  --shadow-soft: 0 10px 34px rgba(0, 0, 0, 0.42);
+  --header-h: 56px;
 }
 
 [data-theme="green"] {
@@ -154,6 +156,52 @@ body {
   border-color: var(--accent);
 }
 
+/* ============================================================
+   SINGLE-SURFACE TWIN PRIMITIVES
+   ============================================================ */
+
+/* Curated suggestion chip — 13px, quiet until hover */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+  border: 1px solid var(--line);
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+.chip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  transform: translateY(-1px);
+}
+.chip:active {
+  transform: translateY(0);
+}
+
+/* Quiet stat pill for the hero */
+.stat-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.stat-pill strong {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Streaming caret */
 .stream-caret::after {
   content: "▍";
@@ -178,10 +226,43 @@ body {
 /* Twin's voice-reactive glow — while the twin speaks, --twin-level (0..1)
    drives this halo around the avatar and the lip-sync bar heights. */
 .voice-glow {
-  opacity: calc(0.35 + 0.65 * var(--twin-level, 0));
-  transform: scale(calc(1 + 0.09 * var(--twin-level, 0)));
+  opacity: calc(0.28 + 0.6 * var(--twin-level, 0));
+  transform: scale(calc(1 + 0.07 * var(--twin-level, 0)));
   transition: opacity 90ms linear, transform 90ms linear;
   will-change: opacity, transform;
+}
+
+/* Header status dot — single accent, calm pulse */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.status-dot[data-state="listening"] {
+  background: var(--accent-3);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-3) 70%, transparent);
+}
+
+/* Hide horizontal scrollbar on mobile prompt scroller while keeping scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prompt row on mobile — horizontal density */
+@media (max-width: 639px) {
+  .prompt-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 2px;
+  }
 }
 .voice-bar {
   transform-origin: bottom;

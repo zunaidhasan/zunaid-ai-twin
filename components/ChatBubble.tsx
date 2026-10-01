@@ -59,12 +59,7 @@ export default function ChatBubble({
         return (
           <div className="mt-3 flex flex-wrap gap-2">
             {p.items.map((c) => (
-              <button
-                key={c}
-                onClick={() => onChip(c)}
-                className="rounded-full border px-3.5 py-1.5 text-[13px] transition hover:-translate-y-0.5"
-                style={{ borderColor: "var(--line)", background: "var(--surface)" }}
-              >
+              <button key={c} onClick={() => onChip(c)} className="chip !bg-[var(--surface)]">
                 {c}
               </button>
             ))}
@@ -85,7 +80,7 @@ export default function ChatBubble({
 
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 30 }}
       className={`flex w-full gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}
@@ -94,11 +89,11 @@ export default function ChatBubble({
         <img
           src={avatarUrl}
           alt=""
-          className="mt-1 h-8 w-8 shrink-0 rounded-full border object-cover"
-          style={{ borderColor: "var(--accent)" }}
+          className="mt-1 h-8 w-8 shrink-0 rounded-full object-cover"
+          style={{ border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--line))" }}
         />
       )}
-      <div className={`max-w-[86%] sm:max-w-[76%] ${isUser ? "items-end" : ""}`}>
+      <div className={`min-w-0 max-w-[88%] sm:max-w-[78%] ${isUser ? "items-end" : ""}`}>
         <div
           className={`rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${isUser ? "rounded-tr-md" : "rounded-tl-md"}`}
           style={{

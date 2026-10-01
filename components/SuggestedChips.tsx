@@ -1,27 +1,31 @@
 "use client";
 
-const DEFAULT_CHIPS = [
-  "Tell me about DeshVox",
-  "Who is Zunaid?",
-  "What's your tech stack?",
-  "show stats",
-  "roast my idea",
-  "bangla mode",
+/**
+ * The single curated prompt set — 6 high-signal openers, one row.
+ * Desktop: wraps/centers quietly under the hero. Mobile: horizontal scroll
+ * with density (no wrap, no scrollbar). Hidden after the first user message.
+ */
+const PROMPTS = [
+  { label: "Tell me about DeshVox", hint: "🎙️" },
+  { label: "Who is Zunaid?", hint: "🧑‍💻" },
+  { label: "What's your tech stack?", hint: "⚙️" },
+  { label: "show stats", hint: "📊" },
+  { label: "roast my idea", hint: "🔥" },
+  { label: "bangla mode", hint: "🇧🇩" },
 ];
 
-/** Opening suggestion chips shown above the input until the user engages. */
 export default function SuggestedChips({ onPick, visible }: { onPick: (chip: string) => void; visible: boolean }) {
   if (!visible) return null;
   return (
-    <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-2 px-4 pb-1 pt-2">
-      {DEFAULT_CHIPS.map((c) => (
-        <button
-          key={c}
-          onClick={() => onPick(c)}
-          className="rounded-full px-3.5 py-1.5 text-[12.5px] transition hover:-translate-y-0.5"
-          style={{ background: "var(--surface)", border: "1px solid var(--line)", color: "var(--text-2)", boxShadow: "var(--shadow-soft)" }}
-        >
-          {c}
+    <div
+      role="group"
+      aria-label="Suggested prompts"
+      className="prompt-scroll no-scrollbar mx-auto flex max-w-3xl flex-wrap justify-center gap-2 px-4 pb-1.5 pt-1 sm:px-5"
+    >
+      {PROMPTS.map((p) => (
+        <button key={p.label} onClick={() => onPick(p.label)} className="chip">
+          <span aria-hidden className="text-[13px]">{p.hint}</span>
+          {p.label}
         </button>
       ))}
     </div>

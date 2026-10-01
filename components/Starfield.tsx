@@ -116,11 +116,12 @@ export default function Starfield({ mood }: { mood: Mood }) {
 
       ctx.clearRect(0, 0, w, h);
 
-      // Subtle nebula glow following the mood hue — brightens with the voice.
-      const glowBoost = level * 0.05;
+      // Ambient nebula glow following the mood hue — kept quiet so it never
+      // competes with the conversation; brightens slightly with the voice.
+      const glowBoost = level * 0.035;
       const grad = ctx.createRadialGradient(w * 0.5, h * 0.18, 0, w * 0.5, h * 0.18, Math.max(w, h) * 0.75);
-      grad.addColorStop(0, `hsla(${hueRef.current}, 70%, 55%, ${0.10 + glowBoost})`);
-      grad.addColorStop(0.5, `hsla(${hueRef.current}, 70%, 45%, ${0.045 + glowBoost * 0.45})`);
+      grad.addColorStop(0, `hsla(${hueRef.current}, 55%, 50%, ${0.055 + glowBoost})`);
+      grad.addColorStop(0.5, `hsla(${hueRef.current}, 55%, 42%, ${0.025 + glowBoost * 0.45})`);
       grad.addColorStop(1, "transparent");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
@@ -137,10 +138,10 @@ export default function Starfield({ mood }: { mood: Mood }) {
         }
 
         // Twinkle — amplitude adds brightness and a subtle size swell.
-        const tw = 0.55 + Math.sin(t * (1 + s.z) + s.tw) * 0.35;
+        const tw = 0.45 + Math.sin(t * (1 + s.z) + s.tw) * 0.3;
         const depth = 0.35 + s.z * 0.65;
-        const bright = tw * depth + level * 0.35 * depth;
-        const radius = s.r * depth * (1 + level * 0.5);
+        const bright = tw * depth * 0.72 + level * 0.22 * depth;
+        const radius = s.r * depth * (1 + level * 0.4);
 
         // Mouse parallax — the sky leans toward you.
         const dx = mouseRef.current.x - s.x;
@@ -150,7 +151,7 @@ export default function Starfield({ mood }: { mood: Mood }) {
 
         ctx.beginPath();
         ctx.arc(s.x + (dx / (dist || 1)) * pull, s.y + (dy / (dist || 1)) * pull, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hueRef.current + s.z * 40 - 20}, 80%, ${70 + s.z * 15}%, ${Math.min(1, bright)})`;
+        ctx.fillStyle = `hsla(${hueRef.current + s.z * 30 - 15}, 60%, ${68 + s.z * 14}%, ${Math.min(1, bright)})`;
         ctx.fill();
       }
 
