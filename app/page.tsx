@@ -18,6 +18,7 @@ import { buildShareUrl, trimToShareable, type ShareMsg } from "@/lib/share";
 import { recordEvent } from "@/lib/analytics";
 import { identity, stats } from "@/lib/knowledge";
 import { useStreamer } from "@/hooks/useStreamer";
+import { createVoiceLoop } from "@/lib/voiceLoop";
 
 type Settings = {
   theme: ThemeId;
@@ -50,6 +51,42 @@ export default function Home() {
   // MessageInput registers its mic starter here so hands-free mode can reopen
   // the mic after each spoken reply (true voice conversation loop).
   const micHandleRef = useRef<(() => void) | null>(null);
+  // Mirrors `busy` for use inside the voice loop's callbacks without re-binding.
+  const busyRef = useRef(false);
+  // Latest twin reply, for the voice loop's speakReply callback.
+  const lastReplyRef = useRef<ReturnType<typeof generateReply> | null>(null);
+
+  // Hands-free voice loop: speak → reply out loud → mic reopens. Epoch-guarded
+  // so stale TTS endings and new turns can't double-open the mic (see voiceLoop.ts).
+  const voiceLoopRef = useRef<ReturnType<typeof createVoiceLoop> | null>(null);
+  if (!voiceLoopRef.current) voiceLoopRef.current = createVoiceLoop();
+  const voiceLoop = voiceLoopRef.current;
+
+  useEffect(() => {
+    voiceLoop.setCallbacks({
+      startMic: () => micHandleRef.current?.(),
+      speakReply: (onSpoken) => {
+        const r = lastReplyRef.current;
+        if (!r) {
+          onSpoken();
+          return;
+        }
+        speak(r.text, {
+          lang: r.lang === "bn" ? "bn" : "en",
+          voiceName: settings.voiceName || undefined,
+          onStart: () => setAvatarState("speaking"),
+          onAmplitude: handleTwinAmplitude,
+          onEnd: () => {
+            setAvatarState("idle");
+            onSpoken();
+          },
+        });
+      },
+      isTwinBusy: () => busyRef.current,
+    });
+  });
+
+  useEffect(() => () => voiceLoop.dispose(), [voiceLoop]);
 
   /* ------------------------ boot: history ------------------------ */
   useEffect(() => {
@@ -113,30 +150,17 @@ export default function Home() {
 
   const pushTwin = useCallback((reply: ReturnType<typeof generateReply>, userText: string) => {
     const id = uid();
+    lastReplyRef.current = reply;
     setMsgs((m) => [...m, { id, role: "twin", text: "", payload: reply.payload }]);
     setAvatarState("thinking");
 
     streamer.stream(id, reply.text, () => {
       setBusy(false);
+      busyRef.current = false;
+      // Voice loop: speaks the reply when voice replies are on, then reopens
+      // the mic in hands-free mode — postponing if a new turn is in flight.
+      voiceLoop.onReplyComplete({ voiceOn: settings.voiceOn, handsFree: settings.handsFree });
       setAvatarState(settings.voiceOn ? "speaking" : "idle");
-      if (settings.voiceOn) {
-        speak(reply.text, {
-          lang: reply.lang === "bn" ? "bn" : "en",
-          voiceName: settings.voiceName || undefined,
-          onStart: () => setAvatarState("speaking"),
-          onAmplitude: handleTwinAmplitude,
-          onEnd: () => {
-            setAvatarState("idle");
-            if (settings.handsFree) {
-              // Voice loop: once the reply finishes speaking, reopen the mic.
-              window.setTimeout(() => micHandleRef.current?.(), 600);
-            }
-          },
-        });
-      } else if (settings.handsFree) {
-        // Hands-free without voice replies: reopen the mic after streaming ends.
-        window.setTimeout(() => micHandleRef.current?.(), 600);
-      }
       setMood(moodForTopic(reply.text));
       // Persist with full text + payload.
       setMsgs((cur) => {
@@ -151,13 +175,16 @@ export default function Home() {
       if (/bangla mode|বাংলা/.test(topics)) setBanglaActive(true);
       if (/english mode/.test(topics)) setBanglaActive(false);
     }
-  }, [settings.voiceOn, settings.voiceName, settings.handsFree, streamer, handleTwinAmplitude]);
+  }, [settings.voiceOn, settings.voiceName, settings.handsFree, streamer, handleTwinAmplitude, voiceLoop]);
 
   const send = useCallback(
     (raw: string) => {
       const text = raw.trim();
       if (!text || busy) return;
       setBusy(true);
+      busyRef.current = true;
+      // New turn: invalidates any pending hands-free mic reopen + stale TTS ending.
+      voiceLoop.onTwinStart();
       stopSpeaking();
 
       const userMsg: BubbleMsg = { id: uid(), role: "user", text };
@@ -201,7 +228,7 @@ export default function Home() {
         setTimeout(() => pushTwin(generateReply(text, ctx), text), 420);
       }
     },
-    [busy, msgs, settings.tone, banglaActive, pushTwin]
+    [busy, msgs, settings.tone, banglaActive, pushTwin, voiceLoop]
   );
 
   const onShare = useCallback((): string => {
@@ -434,7 +461,10 @@ export default function Home() {
               handsFree={settings.handsFree}
               micHandleRef={micHandleRef}
               onMicStart={stopSpeaking}
-              onListeningChange={setMicListening}
+              onListeningChange={(listening) => {
+                setMicListening(listening);
+                if (!listening) voiceLoop.onMicClosed();
+              }}
               streaming={avatarState !== "idle"}
               showTip={isEmpty}
             />
